@@ -6,16 +6,25 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      BASE_URL: ${{ vars.BASE_URL }}
+      VERSION_CODE: ${{ github.run_number }}
+      VERSION_NAME: 1.0.${{ github.run_number }}
     steps:
       - uses: actions/checkout@v4
+      - name: Unpack project zip
+        run: |
+          unzip -q movedown-github.zip -d unpacked
+          cp -r unpacked/movedown/android ./android
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 17
+          java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
-      - run: chmod +x gradlew
-      - run: ./gradlew assembleDebug
+        with:
+          gradle-version: '8.9'
+      - run: gradle -p android assembleDebug --no-daemon
       - uses: actions/upload-artifact@v4
         with:
-          name: app-debug
-          path: app/build/outputs/apk/debug/*.apk
+          name: MoveDown-apk
+          path: android/app/build/outputs/apk/debug/*.apk
